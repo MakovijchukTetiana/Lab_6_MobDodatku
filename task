@@ -1,0 +1,948 @@
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet, Text, View, Image, TouchableOpacity,
+  TextInput, SafeAreaView, ScrollView, Modal, Alert,
+  ActivityIndicator
+} from 'react-native';
+
+const DEFAULT_BOTTLE = 'https://fimgs.net/mdimg/perfume/375x500.6098.jpg';
+
+const INITIAL_PERFUMES = [
+  // ─── 🌸 КВІТКОВІ ────────────────────────────────────────────────
+  {
+    id: 'f1', category: 'floral', occasion: 'date',
+    name: 'Chance Eau Tendre', brand: 'Chanel', volume: '100 ml (EDT)', longevity: '7-8 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.6098.jpg',
+    summary_ua: `Ніжна квітково-фруктова симфонія, сповнена романтики та паризької жіночності.`,
+    summary_en: `Tender floral-fruity symphony filled with romance and Parisian femininity.`,
+    top_ua: `Айва, Грейпфрут`, top_en: `Quince, Grapefruit`,
+    heart_ua: `Гіацинт, Жасмин`, heart_en: `Hyacinth, Jasmine`,
+    base_ua: `Білий мускус, Ірис`, base_en: `White Musk, Iris`,
+  },
+  {
+    id: 'f2', category: 'floral', occasion: 'relax',
+    name: 'Miss Dior Blooming Bouquet', brand: 'Dior', volume: '50 ml (EDT)', longevity: '6-7 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.25021.jpg',
+    summary_ua: `Ода коханню та весняній ніжності — сукня, вишита сотнями пелюсток півонії.`,
+    summary_en: `Ode to love and spring tenderness — a dress embroidered with peony petals.`,
+    top_ua: `Сицилійський мандарин`, top_en: `Sicilian Mandarin`,
+    heart_ua: `Рожева півонія, Троянда`, heart_en: `Pink Peony, Rose`,
+    base_ua: `Шовковистий мускус`, base_en: `Silky White Musk`,
+  },
+  {
+    id: 'f3', category: 'floral', occasion: 'party',
+    name: 'Good Girl Gone Bad', brand: 'Kilian', volume: '50 ml (EDP)', longevity: '10+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.47268.jpg',
+    summary_ua: `Вихор невинності та спокуси — нарцотична тубероза та поривчасті білі квіти.`,
+    summary_en: `Whirlwind of innocence and temptation — narcotic tuberose and white blooms.`,
+    top_ua: `Османтус, Травнева троянда`, top_en: `Osmanthus, May Rose`,
+    heart_ua: `Тубероза, Нарцис`, heart_en: `Tuberose, Narcissus`,
+    base_ua: `Бурштин, Білий кедр`, base_en: `Amber, White Cedar`,
+  },
+  {
+    id: 'f4', category: 'floral', occasion: 'date',
+    name: 'Delina', brand: 'Parfums de Marly', volume: '75 ml (EDP)', longevity: '12+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.44602.jpg',
+    summary_ua: `Королівський букет: турецька троянда з кислинкою ревеню та оксамитовим лічі.`,
+    summary_en: `Royal bouquet: Turkish rose with tangy rhubarb and velvety lychee.`,
+    top_ua: `Лічі, Ревінь, Бергамот`, top_en: `Lychee, Rhubarb, Bergamot`,
+    heart_ua: `Турецька троянда, Півонія`, heart_en: `Turkish Rose, Peony`,
+    base_ua: `Кашмеран, Ваніль`, base_en: `Cashmeran, Vanilla`,
+  },
+  {
+    id: 'f5', category: 'floral', occasion: 'party',
+    name: 'Fleur Narcotique', brand: 'Ex Nihilo', volume: '100 ml (EDP)', longevity: '10+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.42248.jpg',
+    summary_ua: `Квіткова залежність: дзвінкі півонії, бергамот та солодкий нектар персика.`,
+    summary_en: `Floral addiction: luminous peonies, bergamot and sweet peach nectar.`,
+    top_ua: `Бергамот, Лічі, Персик`, top_en: `Bergamot, Lychee, Peach`,
+    heart_ua: `Жасмин, Півонія, Флердоранж`, heart_en: `Jasmine, Peony, Orange Blossom`,
+    base_ua: `Прозорий мускус, Мох`, base_en: `Transparent Musk, Moss`,
+  },
+  {
+    id: 'f6', category: 'floral', occasion: 'date',
+    name: "J'adore", brand: 'Dior', volume: '100 ml (EDP)', longevity: '9-10 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.816.jpg',
+    summary_ua: `Золота класика жіночності: іланг-іланг, дамаська троянда та граський жасмин.`,
+    summary_en: `Golden classic of femininity: ylang-ylang, damascena rose and Grasse jasmine.`,
+    top_ua: `Груша, Диня, Магнолія`, top_en: `Pear, Melon, Magnolia`,
+    heart_ua: `Жасмин самбак, Конвалія`, heart_en: `Jasmine Sambac, Lily of the Valley`,
+    base_ua: `Ожина, Ваніль, Кедр`, base_en: `Blackberry, Vanilla, Cedar`,
+  },
+
+  // ─── ✨ СХІДНІ ТА ПРЯНІ ──────────────────────────────────────────
+  {
+    id: 'o1', category: 'oriental', occasion: 'date',
+    name: 'Baccarat Rouge 540', brand: 'Maison Francis Kurkdjian', volume: '70 ml (EDP)', longevity: '12+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.44539.jpg',
+    summary_ua: `Легендарний аромат зі сяючим шлейфом кришталевого бурштину, шафрану та смоли.`,
+    summary_en: `Legendary scent with glowing trail of crystal amber, saffron and resin.`,
+    top_ua: `Шафран, Жасмин`, top_en: `Saffron, Jasmine`,
+    heart_ua: `Деревний бурштин, Амбра`, heart_en: `Amberwood, Ambergris`,
+    base_ua: `Ялинова смола, Кедр`, base_en: `Fir Resin, Cedar`,
+  },
+  {
+    id: 'o2', category: 'oriental', occasion: 'party',
+    name: 'Black Opium Extreme', brand: 'Yves Saint Laurent', volume: '50 ml (EDP)', longevity: '9-11 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.63143.jpg',
+    summary_ua: `Екстравагантний акорд чорної кави, темного шоколаду та спокусливого жасмину.`,
+    summary_en: `Extravagant blend of black coffee, dark cocoa and seductive jasmine.`,
+    top_ua: `Чорна кава, Какао`, top_en: `Black Coffee, Cocoa`,
+    heart_ua: `Флердоранж, Жасмин самбак`, heart_en: `Orange Blossom, Jasmine Sambac`,
+    base_ua: `Пачулі, Бурбонська ваніль`, base_en: `Patchouli, Bourbon Vanilla`,
+  },
+  {
+    id: 'o3', category: 'oriental', occasion: 'relax',
+    name: 'Tobacco Vanille', brand: 'Tom Ford', volume: '50 ml (EDP)', longevity: '14+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.6357.jpg',
+    summary_ua: `Теплий аристократичний аромат клубу джентльменів: тютюн, прянощі та ваніль.`,
+    summary_en: `Warm aristocratic gentlemen's club scent: tobacco, spices and vanilla.`,
+    top_ua: `Тютюновий лист, Прянощі`, top_en: `Tobacco Leaf, Spices`,
+    heart_ua: `Ваніль, Какао, Боби тонка`, heart_en: `Vanilla, Cacao, Tonka Bean`,
+    base_ua: `Деревні акорди`, base_en: `Woody Notes`,
+  },
+  {
+    id: 'o4', category: 'oriental', occasion: 'date',
+    name: 'Lost Cherry', brand: 'Tom Ford', volume: '50 ml (EDP)', longevity: '10+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.63037.jpg',
+    summary_ua: `Орієнтальний еліксир стиглої вишні, вишневого лікеру та гіркого мигдалю.`,
+    summary_en: `Oriental nectar of ripe cherries, cherry liqueur and bitter almond.`,
+    top_ua: `Чорна вишня, Лікер, Мигдаль`, top_en: `Black Cherry, Liqueur, Bitter Almond`,
+    heart_ua: `Вишня гріот, Троянда`, heart_en: `Griotte Syrup, Rose`,
+    base_ua: `Перуанський бальзам, Сандал`, base_en: `Peru Balsam, Sandalwood`,
+  },
+  {
+    id: 'o5', category: 'oriental', occasion: 'party',
+    name: "Angels' Share", brand: 'Kilian', volume: '50 ml (EDP)', longevity: '12+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.64376.jpg',
+    summary_ua: `Спадщина коньячного дому: дубові діжки, кориця, праліне та густа ваніль.`,
+    summary_en: `Cognac house heritage: oak barrels, cinnamon, praline and rich vanilla.`,
+    top_ua: `Есенція витриманого коньяку`, top_en: `Cognac Essence`,
+    heart_ua: `Кориця, Дуб, Боби тонка`, heart_en: `Cinnamon, Oak Absolute, Tonka`,
+    base_ua: `Праліне, Ваніль, Сандал`, base_en: `Praline, Vanilla, Sandalwood`,
+  },
+  {
+    id: 'o6', category: 'oriental', occasion: 'date',
+    name: 'Grand Soir', brand: 'Maison Francis Kurkdjian', volume: '70 ml (EDP)', longevity: '12+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.37283.jpg',
+    summary_ua: `Магія вечірнього Парижа: сяйво теплої амбри, лабдануму та ванілі.`,
+    summary_en: `Parisian evening magic: radiance of warm amber, labdanum and vanilla.`,
+    top_ua: `Іспанський лабданум`, top_en: `Spanish Labdanum`,
+    heart_ua: `Бензоїн Сіаму, Боби тонка`, heart_en: `Siam Benzoin, Tonka Bean`,
+    base_ua: `Амбровий акорд, Ваніль`, base_en: `Amber Accord, Vanilla`,
+  },
+
+  // ─── 🌲 ДЕРЕВНІ ТА ШЛЕЙФОВІ ─────────────────────────────────────
+  {
+    id: 'w1', category: 'woody', occasion: 'work',
+    name: 'Santal 33', brand: 'Le Labo', volume: '50 ml (EDP)', longevity: '10+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.13058.jpg',
+    summary_ua: `Культовий унісекс-аромат: медитативний сандал, сухий папірус та м'яка шкіра.`,
+    summary_en: `Iconic unisex scent: meditative sandalwood, dry papyrus and soft leather.`,
+    top_ua: `Кардамон, Фіалка`, top_en: `Cardamom, Violet`,
+    heart_ua: `Ірис, Папірус, Амброксан`, heart_en: `Iris, Papyrus, Ambrox`,
+    base_ua: `Сандал, Кедр, Шкіра`, base_en: `Sandalwood, Cedar, Leather`,
+  },
+  {
+    id: 'w2', category: 'woody', occasion: 'work',
+    name: 'Molecule 01 + Iris', brand: 'Escentric Molecules', volume: '100 ml (EDT)', longevity: '8-10 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.45614.jpg',
+    summary_ua: `Молекулярний мінімалізм: оксамитовий Iso E Super у гармонії з натуральним ірисом.`,
+    summary_en: `Molecular minimalism: velvety Iso E Super in harmony with natural iris.`,
+    top_ua: `Флорентійський ірис`, top_en: `Florentine Iris`,
+    heart_ua: `Iso E Super`, heart_en: `Iso E Super`,
+    base_ua: `Білий мускус, Деревні ноти`, base_en: `White Musk, Woody Notes`,
+  },
+  {
+    id: 'w3', category: 'woody', occasion: 'date',
+    name: 'Oud Wood', brand: 'Tom Ford', volume: '50 ml (EDP)', longevity: '10+ год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.6362.jpg',
+    summary_ua: `Містичний шедевр на коштовному дереві уд, кардамоні та сандалі.`,
+    summary_en: `Mystic masterpiece built on precious oud wood, cardamom and sandalwood.`,
+    top_ua: `Рожеве дерево, Кардамон`, top_en: `Rosewood, Cardamom`,
+    heart_ua: `Уд, Сандал, Ветивер`, heart_en: `Oud, Sandalwood, Vetiver`,
+    base_ua: `Боби тонка, Ваніль`, base_en: `Tonka Bean, Vanilla`,
+  },
+  {
+    id: 'w4', category: 'woody', occasion: 'relax',
+    name: 'Gypsy Water', brand: 'Byredo', volume: '100 ml (EDP)', longevity: '7-8 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.13028.jpg',
+    summary_ua: `Свіжа хвоя сосни, ялівець, димний ладан та солодка лісова ваніль.`,
+    summary_en: `Fresh pine needles, juniper, smoky incense and sweet forest vanilla.`,
+    top_ua: `Ялівець, Лимон, Бергамот`, top_en: `Juniper, Lemon, Bergamot`,
+    heart_ua: `Хвоя сосни, Ладан, Ірис`, heart_en: `Pine Needles, Incense, Orris`,
+    base_ua: `Ваніль, Сандал, Амбра`, base_en: `Vanilla, Sandalwood, Amber`,
+  },
+  {
+    id: 'w5', category: 'woody', occasion: 'work',
+    name: 'Encre Noire', brand: 'Lalique', volume: '100 ml (EDT)', longevity: '9-11 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.4837.jpg',
+    summary_ua: `Темна елегантність осіннього лісу: землистий ветивер, кипарис та кашемір.`,
+    summary_en: `Dark autumn forest elegance: earthy vetiver, fresh cypress and cashmere wood.`,
+    top_ua: `Зелений кипарис`, top_en: `Green Cypress`,
+    heart_ua: `Бурбонський ветивер`, heart_en: `Bourbon Vetiver`,
+    base_ua: `Кашемірове дерево, Мускус`, base_en: `Cashmere Wood, Musk`,
+  },
+  {
+    id: 'w6', category: 'woody', occasion: 'work',
+    name: "Terre d'Hermes", brand: 'Hermès', volume: '100 ml (EDT)', longevity: '9-10 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.5386.jpg',
+    summary_ua: `Єднання стихій: іскристі гіркі цитруси, мінеральний кремень та лісовий кедр.`,
+    summary_en: `Unity of elements: bitter citrus, mineral flint and noble cedar.`,
+    top_ua: `Гіркий апельсин, Грейпфрут`, top_en: `Bitter Orange, Grapefruit`,
+    heart_ua: `Перець, Кремінь`, heart_en: `Pepper, Flint`,
+    base_ua: `Ветивер, Кедр, Бензоїн`, base_en: `Vetiver, Cedar, Benzoin`,
+  },
+
+  // ─── 🍋 СВІЖІ ТА МОРСЬКІ ─────────────────────────────────────────
+  {
+    id: 's1', category: 'fresh', occasion: 'summer',
+    name: 'Wood Sage & Sea Salt', brand: 'Jo Malone London', volume: '100 ml (Cologne)', longevity: '6-7 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.28435.jpg',
+    summary_ua: `Вітряне морське узбережжя, солоні бризки хвиль і свіжі мінеральні ноти шавлії.`,
+    summary_en: `Windswept shore, salty sea spray and mineral fresh sage.`,
+    top_ua: `Насіння амбретти, Грейпфрут`, top_en: `Ambrette Seeds, Grapefruit`,
+    heart_ua: `Морська сіль, Мінерали`, heart_en: `Sea Salt, Mineral Accord`,
+    base_ua: `Мускатна шавлія, Водорості`, base_en: `Sage, Red Algae`,
+  },
+  {
+    id: 's2', category: 'fresh', occasion: 'summer',
+    name: 'Mandarine Basilic', brand: 'Guerlain (Aqua Allegoria)', volume: '75 ml (EDT)', longevity: '6-8 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.28977.jpg',
+    summary_ua: `Іскристий сплеск соковитого мандарина, пряного базиліку та зеленого чаю.`,
+    summary_en: `Sparkling splash of juicy mandarin, aromatic basil and green tea.`,
+    top_ua: `Клементин, Зелений чай`, top_en: `Clementine, Green Tea`,
+    heart_ua: `Мандарин, Базилік, Півонія`, heart_en: `Mandarin, Basil, Peony`,
+    base_ua: `Сандал, Прозора амбра`, base_en: `Sandalwood, Amber`,
+  },
+  {
+    id: 's3', category: 'fresh', occasion: 'summer',
+    name: 'Light Blue', brand: 'Dolce & Gabbana', volume: '100 ml (EDT)', longevity: '7-8 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.3413.jpg',
+    summary_ua: `Сицилійське літо: зелене яблуко, дзвінкий лимон та свіжі стебла бамбука.`,
+    summary_en: `Sicilian summer: green apple, zesty lemon and fresh bamboo.`,
+    top_ua: `Сицилійський лимон, Яблуко`, top_en: `Sicilian Lemon, Apple`,
+    heart_ua: `Бамбук, Біла троянда`, heart_en: `Bamboo, White Rose`,
+    base_ua: `Кедр, Мускус, Бурштин`, base_en: `Cedar, Musk, Amber`,
+  },
+  {
+    id: 's4', category: 'fresh', occasion: 'summer',
+    name: 'Acqua di Gioia', brand: 'Giorgio Armani', volume: '100 ml (EDP)', longevity: '8-9 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.8853.jpg',
+    summary_ua: `Ковток морського бризу: розім'ята м'ята, калабрійський лимон та водяний жасмин.`,
+    summary_en: `Breath of sea breeze: crushed mint, Calabrian lemon and water jasmine.`,
+    top_ua: `М'ята, Лимон`, top_en: `Mint Leaves, Lemon`,
+    heart_ua: `Водяний жасмин, Перець`, heart_en: `Water Jasmine, Pink Pepper`,
+    base_ua: `Кедр, Тростинний цукор`, base_en: `Cedar, Brown Sugar`,
+  },
+  {
+    id: 's5', category: 'fresh', occasion: 'work',
+    name: 'Silver Mountain Water', brand: 'Creed', volume: '100 ml (EDP)', longevity: '8-10 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.9765.jpg',
+    summary_ua: `Кришталева свіжість швейцарських Альп: зелений чай та чорна смородина.`,
+    summary_en: `Crystal alpine purity: crisp green tea and blackcurrant buds.`,
+    top_ua: `Бергамот, Мандарин`, top_en: `Bergamot, Mandarin`,
+    heart_ua: `Зелений чай, Смородина`, heart_en: `Green Tea, Blackcurrant`,
+    base_ua: `Мускус, Сандал`, base_en: `Musk, Sandalwood`,
+  },
+  {
+    id: 's6', category: 'fresh', occasion: 'relax',
+    name: 'Soleil Neige', brand: 'Tom Ford', volume: '50 ml (EDP)', longevity: '8-9 год',
+    image: 'https://fimgs.net/mdimg/perfume/375x500.55427.jpg',
+    summary_ua: `Сяйво зимового сонця на засніжених вершинах: бергамот, білі квіти та бензоїн.`,
+    summary_en: `Winter sunlight on snowy peaks: bergamot, white flowers and cozy benzoin.`,
+    top_ua: `Бергамот, Насіння моркви`, top_en: `Bergamot, Carrot Seed`,
+    heart_ua: `Білі квіти, Флердоранж`, heart_en: `White Flowers, Orange Blossom`,
+    base_ua: `Бензоїн, Ваніль`, base_en: `Benzoin, Vanilla`,
+  },
+];
+
+const CloudDB = {
+  data: [...INITIAL_PERFUMES],
+  async fetchCatalog() {
+    return new Promise(r => setTimeout(() => r([...CloudDB.data]), 200));
+  },
+  async addPerfume(item) {
+    return new Promise(r => setTimeout(() => {
+      const p = { ...item, id: Date.now().toString() };
+      CloudDB.data.unshift(p);
+      r(p);
+    }, 200));
+  },
+  async deletePerfume(id) {
+    return new Promise(r => setTimeout(() => {
+      CloudDB.data = CloudDB.data.filter(p => p.id !== id);
+      r(true);
+    }, 200));
+  }
+};
+
+// ====================================================================
+// 2. МОВНИЙ СЛОВНИК
+// ====================================================================
+const DICT = {
+  ua: {
+    appTitle: 'Scent Finder 🌸',
+    authTitle: '🔐 Авторизація',
+    nameLabel: "Ваше ім'я:",
+    namePh: "Наприклад: Тетяна",
+    loginLabel: 'Логін (для Адміна введіть "admin"):',
+    loginPh: 'user або admin',
+    loginBtn: 'Увійти ✨',
+    guestBtn: '👤 Переглядати як гість',
+    roleTagGuest: '👤 Гість',
+    roleTagUser: '✨ Користувач',
+    roleTagAdmin: '👑 Адміністратор',
+    logout: '🚪 Вихід',
+    catLabel: 'ОБЕРІТЬ РУБРИКУ:',
+    catalogTitle: 'КАТАЛОГ АРОМАТІВ',
+    clickDetails: 'Деталі та піраміда нот →',
+    adminAddBtn: '➕ Додати парфум',
+    modalPickCat: 'Оберіть рубрику',
+    summaryTitle: '📖 КОРОТКИЙ ЗМІСТ:',
+    pyramidTitle: '🌸 ПІРАМІДА АРОМАТУ:',
+    topNotes: '✨ Верхні ноти:',
+    heartNotes: '❤️ Ноти серця:',
+    baseNotes: '🪵 Базові ноти:',
+    longevity: 'Стійкість:',
+    favAdd: '❤️ Додати в обране',
+    favRemove: '💔 Видалити з обраного',
+    closeWin: 'Закрити',
+    adminModalTitle: '👑 Новий парфум',
+    saveBtn: '💾 Зберегти',
+    cancelBtn: 'Скасувати',
+    guestNotice: 'Щоб зберігати аромати, увійдіть як користувач!',
+    deleteConfirm: 'Видалити з каталогу?',
+    deleteAction: 'Видалити',
+    tabs: { catalog: '🌸 Каталог', quiz: '✨ Підбір', fav: '❤️ Обране', profile: '👤 Профіль' },
+    quizTitle: '✨ Персональний підбір',
+    quizSub: 'Оберіть подію або настрій — ми знайдемо ваш аромат:',
+    findBtn: 'Знайти мій аромат ✨',
+    matchTitle: 'ВАШ ВИБІР:',
+    emptyFav: 'Обране порожнє.\nНатисніть ❤️ на будь-якому флаконі!',
+    settingsTitle: 'НАЛАШТУВАННЯ',
+    langSetting: 'Мова / Language',
+    themeSetting: 'Тема / Theme',
+    themeLight: '☀️ Світла',
+    themeDark: '🌙 Темна',
+    occasions: [
+      { id: 'date',   title: '🌹 Романтичне побачення',   desc: 'Чуттєвий та загадковий шлейф' },
+      { id: 'work',   title: '💼 Офіс та ділова зустріч', desc: 'Елегантний, стриманий акорд' },
+      { id: 'party',  title: '💃 Вечірка та яскравий вечір', desc: 'Гучний та шлейфовий еліксир' },
+      { id: 'relax',  title: '☕ Затишний вечір вдома',    desc: 'Тепло, ваніль і прянощі' },
+      { id: 'summer', title: '🌊 Літо, море та свіже повітря', desc: 'Морська сіль та дзвінкі цитруси' },
+    ],
+    categories: [
+      { id: 'all',      label: '🌟 Всі рубрики' },
+      { id: 'floral',   label: '🌸 Квіткові аромати' },
+      { id: 'oriental', label: '✨ Східні та пряні' },
+      { id: 'woody',    label: '🌲 Деревні та шлейфові' },
+      { id: 'fresh',    label: '🍋 Свіжі та морські' },
+    ],
+  },
+  en: {
+    appTitle: 'Scent Finder 🌸',
+    authTitle: '🔐 Authorization',
+    nameLabel: 'Your Name:',
+    namePh: 'e.g. Tatiana',
+    loginLabel: 'Login (enter "admin" for Admin):',
+    loginPh: 'user or admin',
+    loginBtn: 'Log In ✨',
+    guestBtn: '👤 Browse as Guest',
+    roleTagGuest: '👤 Guest',
+    roleTagUser: '✨ User',
+    roleTagAdmin: '👑 Admin',
+    logout: '🚪 Logout',
+    catLabel: 'SELECT CATEGORY:',
+    catalogTitle: 'FRAGRANCE CATALOG',
+    clickDetails: 'Details & scent pyramid →',
+    adminAddBtn: '➕ Add Fragrance',
+    modalPickCat: 'Select Category',
+    summaryTitle: '📖 SUMMARY:',
+    pyramidTitle: '🌸 FRAGRANCE PYRAMID:',
+    topNotes: '✨ Top notes:',
+    heartNotes: '❤️ Heart notes:',
+    baseNotes: '🪵 Base notes:',
+    longevity: 'Longevity:',
+    favAdd: '❤️ Add to Favorites',
+    favRemove: '💔 Remove from Favorites',
+    closeWin: 'Close',
+    adminModalTitle: '👑 New Fragrance',
+    saveBtn: '💾 Save',
+    cancelBtn: 'Cancel',
+    guestNotice: 'Please log in to save fragrances!',
+    deleteConfirm: 'Remove from catalog?',
+    deleteAction: 'Delete',
+    tabs: { catalog: '🌸 Catalog', quiz: '✨ Matcher', fav: '❤️ Favorites', profile: '👤 Profile' },
+    quizTitle: '✨ Personal Scent Matcher',
+    quizSub: 'Choose your vibe — we will find your perfect fragrance:',
+    findBtn: 'Match My Scent ✨',
+    matchTitle: 'YOUR MATCH:',
+    emptyFav: 'No favorites yet.\nTap ❤️ on any bottle!',
+    settingsTitle: 'SETTINGS',
+    langSetting: 'Language / Мова',
+    themeSetting: 'Theme / Тема',
+    themeLight: '☀️ Light',
+    themeDark: '🌙 Dark',
+    occasions: [
+      { id: 'date',   title: '🌹 Romantic Date Night',     desc: 'Sensual and mysterious trail' },
+      { id: 'work',   title: '💼 Business & Office',        desc: 'Clean, elegant signature' },
+      { id: 'party',  title: '💃 Night Out & Party',        desc: 'Bold and head-turning energy' },
+      { id: 'relax',  title: '☕ Cozy Evening at Home',     desc: 'Warm spices and vanilla comfort' },
+      { id: 'summer', title: '🌊 Summer & Beach',           desc: 'Marine salt and zesty citrus' },
+    ],
+    categories: [
+      { id: 'all',      label: '🌟 All Categories' },
+      { id: 'floral',   label: '🌸 Floral Fragrances' },
+      { id: 'oriental', label: '✨ Oriental & Spicy' },
+      { id: 'woody',    label: '🌲 Woody & Smoky' },
+      { id: 'fresh',    label: '🍋 Fresh & Marine' },
+    ],
+  },
+};
+
+export default function App() {
+  const [lang, setLang]               = useState('ua');
+  const [isDark, setIsDark]           = useState(false);
+  const [activeTab, setActiveTab]     = useState('catalog');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [inputName, setInputName]     = useState('');
+  const [inputLogin, setInputLogin]   = useState('');
+  const [perfumes, setPerfumes]       = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [selectedCat, setSelectedCat] = useState('all');
+  const [showDropdown, setShowDropdown]       = useState(false);
+  const [selectedPerfume, setSelectedPerfume] = useState(null);
+  const [favorites, setFavorites]     = useState([]);
+  const [chosenOcc, setChosenOcc]     = useState('date');
+  const [matchedPerfume, setMatchedPerfume]   = useState(null);
+  const [showAddModal, setShowAddModal]       = useState(false);
+  const [newName, setNewName]         = useState('');
+  const [newBrand, setNewBrand]       = useState('');
+  const [newCat, setNewCat]           = useState('floral');
+  const [newSummary, setNewSummary]   = useState('');
+  const [newNotes, setNewNotes]       = useState('');
+
+  const t = DICT[lang];
+
+  useEffect(() => { loadCatalog(); }, []);
+
+  const loadCatalog = async () => {
+    setLoading(true);
+    setPerfumes(await CloudDB.fetchCatalog());
+    setLoading(false);
+  };
+
+  const handleLogin = (isGuest = false) => {
+    if (isGuest) {
+      setCurrentUser({ name: lang === 'ua' ? 'Гість' : 'Guest', login: 'guest', role: 'guest' });
+      return;
+    }
+    if (!inputName.trim() || !inputLogin.trim()) {
+      Alert.alert('!', lang === 'ua' ? "Введіть ім'я та логін" : 'Enter name and login'); return;
+    }
+    const login = inputLogin.trim().toLowerCase();
+    setCurrentUser({ name: inputName.trim(), login, role: login === 'admin' ? 'admin' : 'user' });
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null); setInputName(''); setInputLogin('');
+    setSelectedPerfume(null); setActiveTab('catalog');
+  };
+
+  const toggleFav = (id) => {
+    if (currentUser?.role === 'guest') {
+      Alert.alert('', t.guestNotice); return;
+    }
+    setFavorites(p => p.includes(id) ? p.filter(f => f !== id) : [...p, id]);
+  };
+
+  const handleDelete = async (id, name) => {
+    Alert.alert(name, t.deleteConfirm, [
+      { text: t.cancelBtn, style: 'cancel' },
+      { text: t.deleteAction, style: 'destructive', onPress: async () => {
+          await CloudDB.deletePerfume(id); await loadCatalog();
+      }},
+    ]);
+  };
+
+  const handleAdd = async () => {
+    if (!newName.trim() || !newBrand.trim()) {
+      Alert.alert('!', lang === 'ua' ? 'Введіть назву та бренд!' : 'Enter name and brand!'); return;
+    }
+    await CloudDB.addPerfume({
+      name: newName.trim(), brand: newBrand.trim(), category: newCat, occasion: 'date',
+      volume: '50 ml (EDP)', longevity: '8-10 год', image: DEFAULT_BOTTLE,
+      summary_ua: newSummary || 'Новий аромат.', summary_en: newSummary || 'New fragrance.',
+      top_ua: newNotes || 'Бергамот', top_en: newNotes || 'Bergamot',
+      heart_ua: 'Жасмин, Троянда', heart_en: 'Jasmine, Rose',
+      base_ua: 'Амбра, Мускус',    base_en: 'Amber, Musk',
+    });
+    setNewName(''); setNewBrand(''); setNewSummary(''); setNewNotes('');
+    setShowAddModal(false); await loadCatalog();
+  };
+
+  const handleFindMatch = () => {
+    const pool = perfumes.filter(p => p.occasion === chosenOcc);
+    setMatchedPerfume((pool.length ? pool : perfumes)[Math.floor(Math.random() * (pool.length || perfumes.length))]);
+  };
+
+  const filtered   = perfumes.filter(p => selectedCat === 'all' || p.category === selectedCat);
+  const favList    = perfumes.filter(p => favorites.includes(p.id));
+  const catObj     = t.categories.find(c => c.id === selectedCat);
+
+  const TH = {
+    bg:       isDark ? '#0f0f11' : '#f5f5f7',
+    card:     isDark ? '#1c1c22' : '#ffffff',
+    text:     isDark ? '#f0f0f2' : '#111111',
+    sub:      isDark ? '#8e8e99' : '#666666',
+    border:   isDark ? '#2a2a34' : '#eeeeee',
+    input:    isDark ? '#252530' : '#f0f0f3',
+    header:   isDark ? '#16161c' : '#ffffff',
+    nav:      isDark ? '#16161c' : '#ffffff',
+    accent:   '#ad1457',
+  };
+
+  // ────────────── ЕКРАН АВТОРИЗАЦІЇ ──────────────────────────────────
+  if (!currentUser) return (
+    <SafeAreaView style={[S.fill, { backgroundColor: TH.bg }]}>
+      <ScrollView contentContainerStyle={S.loginWrap}>
+
+        <View style={S.topCtrl}>
+          <TouchableOpacity style={[S.pill, { backgroundColor: TH.card, borderColor: TH.border }]}
+            onPress={() => setLang(lang === 'ua' ? 'en' : 'ua')}>
+            <Text style={[S.pillTxt, { color: TH.text }]}>{lang === 'ua' ? '🇺🇦 UA' : '🇬🇧 EN'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[S.pill, { backgroundColor: TH.card, borderColor: TH.border }]}
+            onPress={() => setIsDark(!isDark)}>
+            <Text style={[S.pillTxt, { color: TH.text }]}>{isDark ? '🌙' : '☀️'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={{ fontSize: 52, textAlign: 'center', marginBottom: 4 }}>🌸</Text>
+        <Text style={[S.appTitle, { color: TH.text }]}>{t.appTitle}</Text>
+
+        <View style={[S.card, { backgroundColor: TH.card, borderColor: TH.border, marginTop: 20 }]}>
+          <Text style={[S.cardTitle, { color: TH.text }]}>{t.authTitle}</Text>
+
+          <Text style={[S.lbl, { color: TH.sub }]}>{t.nameLabel}</Text>
+          <TextInput style={[S.inp, { backgroundColor: TH.input, color: TH.text }]}
+            placeholder={t.namePh} placeholderTextColor="#888"
+            value={inputName} onChangeText={setInputName} />
+
+          <Text style={[S.lbl, { color: TH.sub }]}>{t.loginLabel}</Text>
+          <TextInput style={[S.inp, { backgroundColor: TH.input, color: TH.text }]}
+            placeholder={t.loginPh} placeholderTextColor="#888"
+            value={inputLogin} onChangeText={setInputLogin} autoCapitalize="none" />
+
+          <TouchableOpacity style={[S.btn, { backgroundColor: TH.accent, marginTop: 14 }]} onPress={() => handleLogin(false)}>
+            <Text style={S.btnTxt}>{t.loginBtn}</Text>
+          </TouchableOpacity>
+
+          <View style={[S.div, { backgroundColor: TH.border }]} />
+
+          <TouchableOpacity style={[S.btn, { backgroundColor: '#546e7a' }]} onPress={() => handleLogin(true)}>
+            <Text style={S.btnTxt}>{t.guestBtn}</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+
+  // ────────────── ГОЛОВНИЙ ЕКРАН ─────────────────────────────────────
+  return (
+    <SafeAreaView style={[S.fill, { backgroundColor: TH.bg }]}>
+
+      {/* ШАПКА */}
+      <View style={[S.header, { backgroundColor: TH.header, borderBottomColor: TH.border }]}>
+        <View style={S.row}>
+          <Text style={[S.appTitle, { color: TH.text, fontSize: 18 }]}>{t.appTitle}</Text>
+          <View style={S.row}>
+            <TouchableOpacity style={[S.miniBtn, { backgroundColor: TH.input }]}
+              onPress={() => setLang(lang === 'ua' ? 'en' : 'ua')}>
+              <Text>{lang === 'ua' ? '🇺🇦' : '🇬🇧'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[S.miniBtn, { backgroundColor: TH.input, marginHorizontal: 6 }]}
+              onPress={() => setIsDark(!isDark)}>
+              <Text>{isDark ? '🌙' : '☀️'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[S.miniBtn, { backgroundColor: '#ffebee' }]} onPress={handleLogout}>
+              <Text style={{ color: '#c62828', fontWeight: 'bold', fontSize: 12 }}>
+                {lang === 'ua' ? 'Вихід' : 'Exit'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        {/* Бейдж ролі */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+          <Text style={{ color: TH.sub, fontSize: 12 }}>
+            {currentUser.name}
+          </Text>
+          <View style={[S.roleTag, currentUser.role === 'admin' ? S.tagAdmin : currentUser.role === 'user' ? S.tagUser : S.tagGuest, { marginLeft: 8 }]}>
+            <Text style={S.roleTagTxt}>
+              {currentUser.role === 'admin' ? t.roleTagAdmin : currentUser.role === 'user' ? t.roleTagUser : t.roleTagGuest}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ВМІСТ ВКЛАДОК */}
+      <View style={{ flex: 1 }}>
+
+        {/* ── 🌸 КАТАЛОГ ── */}
+        {activeTab === 'catalog' && (
+          <ScrollView style={{ flex: 1, paddingHorizontal: 14 }}>
+            <View style={[S.ddSection]}>
+              <Text style={[S.secLbl, { color: TH.sub }]}>{t.catLabel}</Text>
+              <TouchableOpacity style={[S.ddSelector, { backgroundColor: TH.card, borderColor: TH.accent }]}
+                onPress={() => setShowDropdown(true)}>
+                <Text style={[{ fontSize: 14, fontWeight: 'bold', color: TH.text }]}>{catObj?.label}</Text>
+                <Text style={{ color: TH.accent, fontWeight: 'bold' }}>▼</Text>
+              </TouchableOpacity>
+            </View>
+
+            {currentUser.role === 'admin' && (
+              <TouchableOpacity style={[S.btn, { backgroundColor: TH.accent, marginBottom: 10 }]}
+                onPress={() => setShowAddModal(true)}>
+                <Text style={S.btnTxt}>{t.adminAddBtn}</Text>
+              </TouchableOpacity>
+            )}
+
+            <Text style={[S.secLbl, { color: TH.sub, marginVertical: 6 }]}>{t.catalogTitle}</Text>
+
+            {loading ? <ActivityIndicator color={TH.accent} style={{ marginTop: 30 }} size="large" /> :
+              filtered.map(item => {
+                const isFav = favorites.includes(item.id);
+                return (
+                  <TouchableOpacity key={item.id}
+                    style={[S.pCard, { backgroundColor: TH.card, borderColor: TH.border }]}
+                    onPress={() => setSelectedPerfume(item)} activeOpacity={0.88}>
+                    <Image source={{ uri: item.image }} style={S.bottleImg}
+                      defaultSource={{ uri: DEFAULT_BOTTLE }} />
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={S.brand}>{item.brand}</Text>
+                      <Text style={[S.pName, { color: TH.text }]}>{item.name}</Text>
+                      <View style={S.metaRow}>
+                        <Text style={[S.badge, { backgroundColor: isDark ? '#1a2a5e' : '#e3f2fd', color: isDark ? '#90caf9' : '#1565c0' }]}>{item.volume}</Text>
+                        <Text style={[S.badge, { backgroundColor: isDark ? '#3e2000' : '#fff3e0', color: '#e65100' }]}>⏳ {item.longevity}</Text>
+                      </View>
+                      <Text style={{ fontSize: 11, color: TH.accent, fontWeight: '600', marginTop: 4 }}>{t.clickDetails}</Text>
+                    </View>
+                    <View style={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <TouchableOpacity onPress={() => toggleFav(item.id)} style={S.favBtn}>
+                        <Text style={{ fontSize: 18 }}>{isFav ? '❤️' : '🤍'}</Text>
+                      </TouchableOpacity>
+                      {currentUser.role === 'admin' && (
+                        <TouchableOpacity onPress={() => handleDelete(item.id, item.name)} style={{ padding: 4 }}>
+                          <Text style={{ fontSize: 14 }}>🗑️</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            <View style={{ height: 30 }} />
+          </ScrollView>
+        )}
+
+        {/* ── ✨ ПІДБІР ── */}
+        {activeTab === 'quiz' && (
+          <ScrollView style={{ flex: 1, padding: 14 }}>
+            <View style={[S.card, { backgroundColor: TH.card, borderColor: TH.border }]}>
+              <Text style={[S.cardTitle, { color: TH.text }]}>{t.quizTitle}</Text>
+              <Text style={{ fontSize: 13, color: TH.sub, marginBottom: 12 }}>{t.quizSub}</Text>
+
+              {t.occasions.map(occ => {
+                const sel = chosenOcc === occ.id;
+                return (
+                  <TouchableOpacity key={occ.id}
+                    style={[S.occBtn, { backgroundColor: sel ? (isDark ? '#2a1a24' : '#fce4ec') : TH.input, borderColor: sel ? TH.accent : TH.border }]}
+                    onPress={() => setChosenOcc(occ.id)}>
+                    <Text style={[{ fontSize: 14, fontWeight: sel ? 'bold' : 'normal', color: TH.text }]}>{occ.title}</Text>
+                    <Text style={{ fontSize: 11, color: TH.sub }}>{occ.desc}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              <TouchableOpacity style={[S.btn, { backgroundColor: TH.accent, marginTop: 14 }]} onPress={handleFindMatch}>
+                <Text style={S.btnTxt}>{t.findBtn}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {matchedPerfume && (
+              <View style={[S.card, { backgroundColor: TH.card, borderColor: TH.accent, marginTop: 16 }]}>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: TH.accent, marginBottom: 6 }}>{t.matchTitle}</Text>
+                <View style={S.row}>
+                  <Image source={{ uri: matchedPerfume.image }} style={{ width: 60, height: 80, borderRadius: 6, resizeMode: 'contain' }} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={S.brand}>{matchedPerfume.brand}</Text>
+                    <Text style={[S.pName, { color: TH.text, fontSize: 16 }]}>{matchedPerfume.name}</Text>
+                    <TouchableOpacity onPress={() => setSelectedPerfume(matchedPerfume)} style={{ marginTop: 6 }}>
+                      <Text style={{ fontSize: 12, color: TH.accent, fontWeight: 'bold' }}>{t.clickDetails}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            )}
+            <View style={{ height: 30 }} />
+          </ScrollView>
+        )}
+
+        {/* ── ❤️ ОБРАНЕ ── */}
+        {activeTab === 'fav' && (
+          <ScrollView style={{ flex: 1, padding: 14 }}>
+            <Text style={[S.secLbl, { color: TH.sub, marginBottom: 10 }]}>{t.tabs.fav}</Text>
+            {favList.length === 0 ? (
+              <View style={{ alignItems: 'center', marginTop: 60 }}>
+                <Text style={{ fontSize: 40, marginBottom: 10 }}>🤍</Text>
+                <Text style={{ textAlign: 'center', color: TH.sub, fontSize: 14, lineHeight: 20 }}>{t.emptyFav}</Text>
+              </View>
+            ) : (
+              favList.map(item => (
+                <TouchableOpacity key={item.id}
+                  style={[S.pCard, { backgroundColor: TH.card, borderColor: TH.border }]}
+                  onPress={() => setSelectedPerfume(item)} activeOpacity={0.88}>
+                  <Image source={{ uri: item.image }} style={S.bottleImg} />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={S.brand}>{item.brand}</Text>
+                    <Text style={[S.pName, { color: TH.text }]}>{item.name}</Text>
+                    <Text style={{ fontSize: 11, color: TH.accent, fontWeight: '600', marginTop: 4 }}>{t.clickDetails}</Text>
+                  </View>
+                  <TouchableOpacity onPress={() => toggleFav(item.id)} style={S.favBtn}>
+                    <Text style={{ fontSize: 18 }}>❤️</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))
+            )}
+            <View style={{ height: 30 }} />
+          </ScrollView>
+        )}
+
+        {/* ── 👤 ПРОФІЛЬ ── */}
+        {activeTab === 'profile' && (
+          <ScrollView style={{ flex: 1, padding: 14 }}>
+            <View style={[S.card, { backgroundColor: TH.card, borderColor: TH.border }]}>
+              <Text style={[S.cardTitle, { color: TH.text }]}>{t.tabs.profile}</Text>
+              <View style={{ alignItems: 'center', marginVertical: 16 }}>
+                <Text style={{ fontSize: 48, marginBottom: 8 }}>🌸</Text>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: TH.text }}>{currentUser.name}</Text>
+                <View style={[S.roleTag, currentUser.role === 'admin' ? S.tagAdmin : currentUser.role === 'user' ? S.tagUser : S.tagGuest, { marginTop: 6 }]}>
+                  <Text style={S.roleTagTxt}>
+                    {currentUser.role === 'admin' ? t.roleTagAdmin : currentUser.role === 'user' ? t.roleTagUser : t.roleTagGuest}
+                  </Text>
+                </View>
+              </View>
+              
+              <View style={[S.div, { backgroundColor: TH.border }]} />
+              
+              <Text style={[S.secLbl, { color: TH.sub, marginTop: 10 }]}>{t.settingsTitle}</Text>
+              
+              <View style={[S.row, { marginVertical: 10 }]}>
+                <Text style={{ color: TH.text, fontSize: 14 }}>{t.langSetting}</Text>
+                <TouchableOpacity style={[S.pill, { backgroundColor: TH.input, borderColor: TH.border }]}
+                  onPress={() => setLang(lang === 'ua' ? 'en' : 'ua')}>
+                  <Text style={[S.pillTxt, { color: TH.text }]}>{lang === 'ua' ? '🇺🇦 UA' : '🇬🇧 EN'}</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={[S.row, { marginVertical: 10 }]}>
+                <Text style={{ color: TH.text, fontSize: 14 }}>{t.themeSetting}</Text>
+                <TouchableOpacity style={[S.pill, { backgroundColor: TH.input, borderColor: TH.border }]}
+                  onPress={() => setIsDark(!isDark)}>
+                  <Text style={[S.pillTxt, { color: TH.text }]}>{isDark ? t.themeDark : t.themeLight}</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity style={[S.btn, { backgroundColor: '#c62828', marginTop: 20 }]} onPress={handleLogout}>
+                <Text style={S.btnTxt}>{t.logout}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ height: 30 }} />
+          </ScrollView>
+        )}
+
+      </View>
+
+      {/* НИЖНЯ ПАНЕЛЬ НАВІГАЦІЇ */}
+      <View style={[S.navBar, { backgroundColor: TH.nav, borderTopColor: TH.border }]}>
+        {[
+          { id: 'catalog', label: t.tabs.catalog },
+          { id: 'quiz',    label: t.tabs.quiz },
+          { id: 'fav',     label: t.tabs.fav },
+          { id: 'profile', label: t.tabs.profile },
+        ].map(tab => {
+          const active = activeTab === tab.id;
+          return (
+            <TouchableOpacity key={tab.id} style={S.navItem} onPress={() => setActiveTab(tab.id)}>
+              <Text style={[{ fontSize: 12, fontWeight: active ? 'bold' : 'normal', color: active ? TH.accent : TH.sub }]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* МОДАЛЬНЕ ВІКНО ВИБОРУ КАТЕГОРІЇ (DropDown) */}
+      <Modal visible={showDropdown} transparent animationType="fade">
+        <View style={S.modalOverlay}>
+          <View style={[S.modalContent, { backgroundColor: TH.card }]}>
+            <Text style={[S.cardTitle, { color: TH.text, marginBottom: 12 }]}>{t.modalPickCat}</Text>
+            {t.categories.map(cat => (
+              <TouchableOpacity key={cat.id}
+                style={[S.modalItem, { borderBottomColor: TH.border }]}
+                onPress={() => { setSelectedCat(cat.id); setShowDropdown(false); }}>
+                <Text style={[{ fontSize: 15, color: selectedCat === cat.id ? TH.accent : TH.text, fontWeight: selectedCat === cat.id ? 'bold' : 'normal' }]}>
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={[S.btn, { backgroundColor: '#546e7a', marginTop: 16 }]} onPress={() => setShowDropdown(false)}>
+              <Text style={S.btnTxt}>{t.closeWin}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* МОДАЛЬНЕ ВІКНО ДЕТАЛЕЙ ПАРФУМУ */}
+      <Modal visible={!!selectedPerfume} transparent animationType="slide">
+        {selectedPerfume && (
+          <View style={S.modalOverlay}>
+            <View style={[S.modalDetails, { backgroundColor: TH.card }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <Image source={{ uri: selectedPerfume.image }} style={S.detailImg} />
+                <Text style={S.brand}>{selectedPerfume.brand}</Text>
+                <Text style={[S.pName, { color: TH.text, fontSize: 20, marginBottom: 8 }]}>{selectedPerfume.name}</Text>
+                
+                <View style={S.metaRow}>
+                  <Text style={[S.badge, { backgroundColor: isDark ? '#1a2a5e' : '#e3f2fd', color: isDark ? '#90caf9' : '#1565c0' }]}>{selectedPerfume.volume}</Text>
+                  <Text style={[S.badge, { backgroundColor: isDark ? '#3e2000' : '#fff3e0', color: '#e65100' }]}>⏳ {selectedPerfume.longevity}</Text>
+                </View>
+
+                <Text style={[S.secLbl, { color: TH.sub, marginTop: 14 }]}>{t.summaryTitle}</Text>
+                <Text style={{ color: TH.text, fontSize: 13, lineHeight: 18, marginTop: 4 }}>
+                  {lang === 'ua' ? selectedPerfume.summary_ua : selectedPerfume.summary_en}
+                </Text>
+
+                <Text style={[S.secLbl, { color: TH.sub, marginTop: 14 }]}>{t.pyramidTitle}</Text>
+                <View style={[S.pyramidBox, { backgroundColor: TH.input }]}>
+                  <Text style={{ fontSize: 12, color: TH.text, marginBottom: 4 }}><Text style={{ fontWeight: 'bold' }}>{t.topNotes}</Text> {lang === 'ua' ? selectedPerfume.top_ua : selectedPerfume.top_en}</Text>
+                  <Text style={{ fontSize: 12, color: TH.text, marginBottom: 4 }}><Text style={{ fontWeight: 'bold' }}>{t.heartNotes}</Text> {lang === 'ua' ? selectedPerfume.heart_ua : selectedPerfume.heart_en}</Text>
+                  <Text style={{ fontSize: 12, color: TH.text }}><Text style={{ fontWeight: 'bold' }}>{t.baseNotes}</Text> {lang === 'ua' ? selectedPerfume.base_ua : selectedPerfume.base_en}</Text>
+                </View>
+
+                <TouchableOpacity style={[S.btn, { backgroundColor: TH.accent, marginTop: 16 }]}
+                  onPress={() => toggleFav(selectedPerfume.id)}>
+                  <Text style={S.btnTxt}>
+                    {favorites.includes(selectedPerfume.id) ? t.favRemove : t.favAdd}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[S.btn, { backgroundColor: '#546e7a', marginTop: 8 }]}
+                  onPress={() => setSelectedPerfume(null)}>
+                  <Text style={S.btnTxt}>{t.closeWin}</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        )}
+      </Modal>
+
+      {/* МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ПАРФУМУ (ДЛЯ АДМІНА) */}
+      <Modal visible={showAddModal} transparent animationType="slide">
+        <View style={S.modalOverlay}>
+          <View style={[S.modalDetails, { backgroundColor: TH.card }]}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={[S.cardTitle, { color: TH.text, marginBottom: 12 }]}>{t.adminModalTitle}</Text>
+              
+              <Text style={[S.lbl, { color: TH.sub }]}>Бренд:</Text>
+              <TextInput style={[S.inp, { backgroundColor: TH.input, color: TH.text }]}
+                placeholder="напр. Tom Ford" placeholderTextColor="#888"
+                value={newBrand} onChangeText={setNewBrand} />
+
+              <Text style={[S.lbl, { color: TH.sub }]}>Назва парфуму:</Text>
+              <TextInput style={[S.inp, { backgroundColor: TH.input, color: TH.text }]}
+                placeholder="напр. Bitter Peach" placeholderTextColor="#888"
+                value={newName} onChangeText={setNewName} />
+
+              <Text style={[S.lbl, { color: TH.sub }]}>Рубрика:</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
+                {['floral', 'oriental', 'woody', 'fresh'].map(catId => (
+                  <TouchableOpacity key={catId}
+                    style={[S.miniPill, { backgroundColor: newCat === catId ? TH.accent : TH.input }]}
+                    onPress={() => setNewCat(catId)}>
+                    <Text style={{ fontSize: 11, color: newCat === catId ? '#fff' : TH.text }}>{catId}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[S.lbl, { color: TH.sub }]}>Короткий опис:</Text>
+              <TextInput style={[S.inp, { backgroundColor: TH.input, color: TH.text, height: 60 }]}
+                placeholder="Опис аромату..." placeholderTextColor="#888"
+                multiline value={newSummary} onChangeText={setNewSummary} />
+
+              <Text style={[S.lbl, { color: TH.sub }]}>Верхні ноти:</Text>
+              <TextInput style={[S.inp, { backgroundColor: TH.input, color: TH.text }]}
+                placeholder="напр. Персик, Апельсин" placeholderTextColor="#888"
+                value={newNotes} onChangeText={setNewNotes} />
+
+              <TouchableOpacity style={[S.btn, { backgroundColor: TH.accent, marginTop: 14 }]} onPress={handleAdd}>
+                <Text style={S.btnTxt}>{t.saveBtn}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={[S.btn, { backgroundColor: '#546e7a', marginTop: 8 }]} onPress={() => setShowAddModal(false)}>
+                <Text style={S.btnTxt}>{t.cancelBtn}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+    </SafeAreaView>
+  );
+}
+
+const S = StyleSheet.create({
+  fill: { flex: 1 },
+  loginWrap: { padding: 20, justifyContent: 'center', flexGrow: 1 },
+  topCtrl: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 20 },
+  pill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, marginLeft: 8 },
+  miniPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, marginRight: 6, marginBottom: 6 },
+  pillTxt: { fontSize: 12, fontWeight: 'bold' },
+  appTitle: { fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  card: { padding: 16, borderRadius: 12, borderWidth: 1 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
+  lbl: { fontSize: 12, fontWeight: '600', marginTop: 10, marginBottom: 4 },
+  inp: { padding: 10, borderRadius: 8, fontSize: 14, borderWidth: 0 },
+  btn: { padding: 12, borderRadius: 8, alignItems: 'center' },
+  btnTxt: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
+  div: { height: 1, marginVertical: 14 },
+  header: { paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  miniBtn: { paddingHorizontal: 8, paddingVertical: 6, borderRadius: 8 },
+  roleTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
+  tagAdmin: { backgroundColor: '#ffebee' },
+  tagUser: { backgroundColor: '#e8f5e9' },
+  tagGuest: { backgroundColor: '#eceff1' },
+  roleTagTxt: { fontSize: 10, fontWeight: 'bold', color: '#333' },
+  ddSection: { marginVertical: 10 },
+  secLbl: { fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5 },
+  ddSelector: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderRadius: 8, borderWidth: 1, marginTop: 4 },
+  pCard: { flexDirection: 'row', padding: 10, borderRadius: 10, borderWidth: 1, marginBottom: 10, alignItems: 'center' },
+  bottleImg: { width: 50, height: 70, borderRadius: 6, resizeMode: 'contain' },
+  brand: { fontSize: 10, fontWeight: 'bold', color: '#888', textTransform: 'uppercase' },
+  pName: { fontSize: 14, fontWeight: 'bold', marginVertical: 2 },
+  metaRow: { flexDirection: 'row', marginTop: 2 },
+  badge: { fontSize: 9, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginRight: 6, fontWeight: '600' },
+  favBtn: { padding: 6 },
+  navBar: { flexDirection: 'row', height: 56, borderTopWidth: 1 },
+  navItem: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalContent: { borderRadius: 12, padding: 16 },
+  modalItem: { paddingVertical: 12, borderBottomWidth: 1 },
+  modalDetails: { borderRadius: 12, padding: 16, maxHeight: '85%' },
+  detailImg: { width: '100%', height: 220, resizeMode: 'contain', marginBottom: 10 },
+  pyramidBox: { padding: 10, borderRadius: 8, marginTop: 6 },
+  occBtn: { padding: 10, borderRadius: 8, borderWidth: 1, marginBottom: 8 },
+});
+
